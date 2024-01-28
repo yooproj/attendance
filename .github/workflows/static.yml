@@ -33,11 +33,28 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY_HOST }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Cache node packages
+        id: node-cache
+        uses: actions/cache@v3
+        with:
+          path: app/node_modules
+          key: node_${{ hashFiles('app/package-lock.json') }}
+      - name: Create cache dirs
+        run: mkdir -p app/node_modules && sudo chown -R 1000:1000 app/node_modules
+      - name: Build
+        run: make ci-build
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
           path: './app/build'
       - name: Deploy to GitHub Pages
         id: deployment
